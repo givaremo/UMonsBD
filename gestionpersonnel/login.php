@@ -1,5 +1,6 @@
 <?php
 
+session_unset();
 session_start();
 
 // Connexion à la base de données
@@ -44,7 +45,7 @@ if ($row) {
     echo "Bienvenue " . $nom . $prenom;
     $_SESSION['idemploye'] = $idemploye;
     $_SESSION['estChef'] = $estChef;
-    $_SESSION['estRH'] = $idemploye;
+    $_SESSION['estRH'] = $estRH;
     $_SESSION['estDirecteurFinancier'] = $estDirecteurFinancier;
     $_SESSION['nom'] = $nom;
     $_SESSION['prenom'] = $prenom;
