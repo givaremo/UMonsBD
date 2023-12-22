@@ -79,3 +79,18 @@ body {
     margin: auto;
     border: 2px solid #2ecc71; /* Bordure verte */
 }
+
+.logout-link {
+    color: #007bff; /* Couleur du lien */
+    text-decoration: none; /* Supprime le soulignement par défaut du lien */
+    cursor: pointer; /* Affiche le curseur en forme de main au survol */
+}
+
+.top-right {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 10px;
+    background-color: #f1f1f1;
+    text-align:right;
+}

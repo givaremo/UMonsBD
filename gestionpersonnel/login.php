@@ -41,6 +41,7 @@ if ($row) {
     $estDirecteurFinancier = $row['estDirecteurFinancier'];
     $nom = $row['nom'];
     $prenom = $row['prenom'];
+    $nomTypeEmploye = $row['nomTypeEmploye'];
     
     echo "Bienvenue " . $nom . $prenom;
     $_SESSION['idemploye'] = $idemploye;
@@ -49,6 +50,7 @@ if ($row) {
     $_SESSION['estDirecteurFinancier'] = $estDirecteurFinancier;
     $_SESSION['nom'] = $nom;
     $_SESSION['prenom'] = $prenom;
+    $_SESSION['nomTypeEmploye'] = $nomTypeEmploye;
 
     // Rediriger vers une autre page
     header("Location: menu.php");
