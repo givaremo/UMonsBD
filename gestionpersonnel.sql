@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 21 déc. 2023 à 18:24
+-- Généré le : ven. 22 déc. 2023 à 13:46
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -47,7 +47,7 @@ DROP PROCEDURE IF EXISTS `usp_ajoutVille`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutVille` (IN `CP` INT, IN `Nom` VARCHAR(100))   insert into ville(CodePostal, Nomville) values (CP,Nom)$$
 
 DROP PROCEDURE IF EXISTS `usp_connectUser`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_connectUser` (IN `mail` VARCHAR(100), IN `pwd` VARCHAR(50))   select idemploye, nom, prenom, estChef, estRH, estDirecteurFinancier
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_connectUser` (IN `mail` VARCHAR(100), IN `pwd` VARCHAR(50))   select idemploye, nom, prenom, estChef, estRH, estDirecteurFinancier, nomTypeEmploye
 from employe emp
 left join typeemploye typemp on(emp.FKIdTypeEmploye = typemp.IdTypeEmploye)
 where adressemail=trim(mail)
