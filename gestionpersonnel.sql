@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 22 déc. 2023 à 13:46
+-- Généré le : ven. 22 déc. 2023 à 14:38
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `conge` (
   `estApprouve` tinyint(1) NOT NULL,
   `FKIdEmploye` int NOT NULL,
   `FKIdTypeConge` int NOT NULL,
-  `FkIDEmployeApprouve` int NOT NULL,
+  `FkIDEmployeApprouve` int DEFAULT NULL,
   PRIMARY KEY (`IdConge`),
   KEY `RelationCongeType` (`FKIdTypeConge`),
   KEY `RelationCongeEmploye` (`FKIdEmploye`),
@@ -222,8 +222,8 @@ CREATE TABLE IF NOT EXISTS `notedefrais` (
   `Montant` float NOT NULL,
   `Motif` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `FKIdEmploye` int NOT NULL,
-  `FKIdEmployeManagerApprouve` int NOT NULL,
-  `FKIdEmployeFinancierApprouve` int NOT NULL,
+  `FKIdEmployeManagerApprouve` int DEFAULT NULL,
+  `FKIdEmployeFinancierApprouve` int DEFAULT NULL,
   PRIMARY KEY (`IdNoteDeFrais`),
   KEY `RelationNoteFraisEmploye` (`FKIdEmploye`),
   KEY `RelationNoteFraisEmployeManager` (`FKIdEmployeManagerApprouve`),
