@@ -42,6 +42,7 @@ if ($row) {
     $nom = $row['nom'];
     $prenom = $row['prenom'];
     $nomTypeEmploye = $row['nomTypeEmploye'];
+    $datecal = date('Y-m-d');
     
     echo "Bienvenue " . $nom . $prenom;
     $_SESSION['idemploye'] = $idemploye;
@@ -51,6 +52,7 @@ if ($row) {
     $_SESSION['nom'] = $nom;
     $_SESSION['prenom'] = $prenom;
     $_SESSION['nomTypeEmploye'] = $nomTypeEmploye;
+    $_SESSION['datecalendrier'] = $datecal;
 
     // Rediriger vers une autre page
     header("Location: menu.php");

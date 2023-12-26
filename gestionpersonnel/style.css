@@ -74,7 +74,7 @@ body {
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 50%;
+    width: 80%;
     text-align: center;
     margin: auto;
     border: 2px solid #2ecc71; /* Bordure verte */
@@ -93,4 +93,55 @@ body {
     padding: 10px;
     background-color: #f1f1f1;
     text-align:right;
+}
+
+
+input[type="date"] {
+  width: 50%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  font-size: 16px;
+  color: #333;
+}
+
+input[type="date"]:focus {
+  outline: none;
+  border-color: #2ecc71;
+}
+
+.table-container {
+    margin-top: 20px;
+    margin-bottom: 20px; /* Ajoutez cette ligne pour centrer la table verticalement */
+    text-align: center; /* Ajoutez cette ligne pour centrer le texte à l'intérieur du conteneur */
+}
+
+table {
+    border-collapse: separate;
+    width: 100%;
+    align:center;
+    border: 0px ;
+}
+
+th, td {
+    border: 0px ;
+    text-align: left;
+    padding: 8px;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #e5e5e5;
+}
+
+h4 {
+    color: #27ae60; /* Vert */
 }
