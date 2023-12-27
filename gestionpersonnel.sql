@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : mar. 26 déc. 2023 à 10:28
+-- Généré le : mer. 27 déc. 2023 à 16:19
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -46,6 +46,9 @@ DROP PROCEDURE IF EXISTS `usp_ajoutAdresse`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutAdresse` (IN `Rue` VARCHAR(200), IN `Numero` VARCHAR(10), IN `Boite` VARCHAR(10), IN `FKIdVille` INT)   insert into Adresse(Rue, NumeroRue, boite, FKIdVille)
 		values(Rue, Numero,Boite,FKIdVille)$$
 
+DROP PROCEDURE IF EXISTS `usp_ajoutContrat`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutContrat` (IN `datedebut` DATE, IN `datefin` DATE, IN `salaire` FLOAT, IN `fkid` INT)   insert into contrat(DateDebut, DateFin, Salaire, FKIdEmploye) values(datedebut,datefin,salaire,fkid)$$
+
 DROP PROCEDURE IF EXISTS `usp_ajoutDepartement`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutDepartement` (IN `NomDepartement` VARCHAR(50))  MODIFIES  DATA insert into departement(Nom) values(NomDepartement)$$
 
@@ -75,6 +78,61 @@ from employe emp
 left join typeemploye typemp on(emp.FKIdTypeEmploye = typemp.IdTypeEmploye)
 where adressemail=trim(mail)
 and password=trim(pwd)$$
+
+DROP PROCEDURE IF EXISTS `usp_modifContrat`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_modifContrat` (IN `idcon` INT, IN `datedebut` DATE, IN `datefin` DATE, IN `salaire` FLOAT, IN `fkidemploye` INT)   update contrat
+set DateDebut=datedebut,
+DateFin=datefin,
+Salaire=salaire,
+FKIdEmploye=fkidemploye
+where IdContrat=idcon$$
+
+DROP PROCEDURE IF EXISTS `usp_modifEmploye`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_modifEmploye` (IN `idemp` INT, IN `nom` VARCHAR(100), IN `prenom` VARCHAR(100), IN `tel` VARCHAR(50), IN `email` VARCHAR(100), IN `motdepasse` VARCHAR(50), IN `iban` VARCHAR(16), IN `niss` VARCHAR(13), IN `fkdepartement` INT, IN `fkadresse` INT, IN `fktypeemploye` INT, IN `fkmanager` INT)   update employe 
+set nom=nom,
+prenom=prenom,
+NumeroTelephone=tel,
+AdresseMail=email,
+password=motdepasse,
+IBAN=iban,
+NumeroRegistreNational=niss,
+FKIDDepartement=fkdepartement,
+FKIDAdresse=fkadresse,
+FKIdTypeEmploye=fktypeemploye,
+FKIdEmployeManager=fkmanager 
+where IdEmploye=idemp$$
+
+DROP PROCEDURE IF EXISTS `usp_selectAdresse`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectAdresse` ()  READS SQL DATA select idadresse, rue, numerorue, boite, codepostal, nomville from adresse ad left join ville vil on(ad.FKIdVille=vil.IdVille)$$
+
+DROP PROCEDURE IF EXISTS `usp_selectContrat`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectContrat` ()   select idcontrat, datedebut, datefin, salaire, fkidemploye, nom as nomemploye, prenom as prenomemploye
+from contrat con
+left join employe emp on(emp.IdEmploye=con.FKIdEmploye)$$
+
+DROP PROCEDURE IF EXISTS `usp_selectDepartement`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectDepartement` ()  READS SQL DATA SELECT iddepartement, nom FROM departement$$
+
+DROP PROCEDURE IF EXISTS `usp_selectEmploye`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectEmploye` ()  READS SQL DATA select idemploye, emp.nom as nomemploye, emp.prenom as prenomemploye, dep.Nom as nomdepartement
+from employe emp
+left join departement dep on(emp.FKIdDepartement=dep.IdDepartement)$$
+
+DROP PROCEDURE IF EXISTS `usp_selectinfoContrat`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectinfoContrat` (IN `idcon` INT)  READS SQL DATA select datedebut,datefin,salaire,fkidemploye
+from contrat
+where idcontrat=idcon$$
+
+DROP PROCEDURE IF EXISTS `usp_selectinfoEmploye`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectinfoEmploye` (IN `idemp` INT)   select nom,prenom,numerotelephone,adressemail,password,iban,numeroregistrenational,fkiddepartement,fkidadresse,fkidtypeemploye,fkidemployemanager
+from employe
+where idemploye=idemp$$
+
+DROP PROCEDURE IF EXISTS `usp_selectManager`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectManager` ()  READS SQL DATA select emp.idemploye as idmanager, emp.nom as nommanager, emp.prenom as prenommanager, typ.nomtypeemploye as typeemployemanager,  dep.Nom as nomdepartement from employe emp left join typeemploye typ on(emp.FKIdTypeEmploye=typ.IdTypeEmploye) left join departement dep on(dep.IdDepartement=emp.FKIdDepartement) where typ.estChef=1$$
+
+DROP PROCEDURE IF EXISTS `usp_selectTypeEmploye`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectTypeEmploye` ()  READS SQL DATA select idtypeemploye, nomtypeemploye from typeemploye$$
 
 DELIMITER ;
 
@@ -156,7 +214,15 @@ CREATE TABLE IF NOT EXISTS `contrat` (
   `FKIdEmploye` int NOT NULL,
   PRIMARY KEY (`IdContrat`),
   KEY `RelationContratEmploye` (`FKIdEmploye`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `contrat`
+--
+
+INSERT INTO `contrat` (`IdContrat`, `DateDebut`, `DateFin`, `Salaire`, `FKIdEmploye`) VALUES
+(1, '2022-01-01', '2099-12-31', 5000.25, 1),
+(2, '2023-01-01', '2023-12-31', 5236.54, 6);
 
 -- --------------------------------------------------------
 
@@ -208,7 +274,7 @@ CREATE TABLE IF NOT EXISTS `employe` (
   KEY `RelationEmployeAdresse` (`FKIdAdresse`),
   KEY `RelationEmployeTypeEmploye` (`FKIdTypeEmploye`),
   KEY `RelationEmployeManager` (`FKIdEmployeManager`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `employe`
@@ -216,7 +282,7 @@ CREATE TABLE IF NOT EXISTS `employe` (
 
 INSERT INTO `employe` (`IdEmploye`, `Nom`, `Prenom`, `NumeroTelephone`, `AdresseMail`, `password`, `IBAN`, `NumeroRegistreNational`, `FKIdDepartement`, `FKIdAdresse`, `FKIdTypeEmploye`, `FKIdEmployeManager`) VALUES
 (1, 'Dupont', 'Michel', '0495/78.32.56', 'Michel.Dupont@umons.ac.be', 'toto1234', 'BE56123456789012', '521032-123-56', 6, 4, 6, NULL),
-(2, 'Dubois', 'Micheline', '0492/23.14.69', 'Micheline.Dubois@umons.ac.be', 'toto5678', 'BE56369874521036', '508030-987-23', 1, 1, 2, 1),
+(2, 'Dubois', 'Micheline', '0492/23.14.70', 'Micheline.Dubois@umons.ac.be', 'toto5678', 'BE56369874521035', '508030-987-24', 1, 5, 2, 1),
 (3, 'Lebeau', 'Marc', '0475/69.23.12', 'Marc.Lebeau@umons.ac.be', 'abc123', 'BE23569874526987', '653256-236-52', 1, 6, 1, 2),
 (4, 'Legrand', 'Papy', '0492/22.01.63', 'Papy.Legrand@umons.ac.be', 'azerty99', 'BE32458963214568', '745632-122-33', 2, 7, 5, 1),
 (5, 'Lefevre', 'Jean', '0475/69.60.24', 'Lefevre.Jean@umons.ac.be', 'hHet0iKR', 'BE65752969841892', '908084-408-85', 1, 6, 1, 2),
@@ -243,7 +309,8 @@ INSERT INTO `employe` (`IdEmploye`, `Nom`, `Prenom`, `NumeroTelephone`, `Adresse
 (26, 'Dubois', 'Isabelle', '0471/55.63.66', 'Dubois.Isabelle@umons.ac.be', '0FSWZqfl', 'BE69607462163233', '854541-959-57', 2, 2, 3, 4),
 (27, 'Simon', 'Isabelle', '0473/18.63.65', 'Simon.Isabelle@umons.ac.be', 'x07Oq2hH', 'BE82625482592123', '257767-134-30', 6, 3, 3, 1),
 (28, 'Lefort', 'Isabelle', '0477/54.87.27', 'Lefort.Isabelle@umons.ac.be', 'bZj6pLVs', 'BE77141417110015', '248345-722-70', 3, 6, 3, 7),
-(29, 'Laurent', 'Marie', '0477/64.97.21', 'Laurent.Marie@umons.ac.be', 'cL67Y0rN', 'BE85983205285884', '951458-249-20', 1, 5, 3, 2);
+(29, 'Laurent', 'Marie', '0477/64.97.21', 'Laurent.Marie@umons.ac.be', 'cL67Y0rN', 'BE85983205285884', '951458-249-20', 1, 5, 3, 2),
+(30, 'Jordan', 'Michael', '0485/78.56.32', 'Michael.Jordan@umons.ac.be', '1234toto', 'BE85456987412563', '854123-785-65', 3, 5, 3, 7);
 
 -- --------------------------------------------------------
 
