@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : mer. 27 déc. 2023 à 16:19
+-- Généré le : jeu. 28 déc. 2023 à 13:44
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -57,9 +57,10 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutEmploye` (IN `nom` VARCHAR
 values(nom,prenom,tel,email,motdepasse,iban,niss,fkdepartement,fkadresse,fktypeemploye,fkmanager)$$
 
 DROP PROCEDURE IF EXISTS `usp_ajoutNotesdeFrais`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutNotesdeFrais` (IN `DateNoteDeFrais` DATE, IN `DateDemande` DATE, IN `Montant` INT(100) UNSIGNED, IN `Motif` VARCHAR(100), IN `FKIdEmploye` INT(100) UNSIGNED, IN `FKIdEmployeManagerApprouve` INT(100) UNSIGNED, IN `FKIdEmployeFinancierApprouve` INT(100) UNSIGNED)   BEGIN
-    INSERT INTO notedefrais (DateNoteDeFrais, DateDemande, Montant, Motif, FKIdEmploye, FKIdEmployeManagerApprouve, FKIdEmployeFinancierApprouve)
-    VALUES (DateNoteDeFrais, DateDemande, Montant, Motif, FKIdEmploye, FKIdEmployeManagerApprouve, FKIdEmployeFinancierApprouve);
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutNotesdeFrais` (IN `DateNoteDeFrais` DATE, IN `DateDemande` DATE, IN `Montant` INT(100), IN `Motif` VARCHAR(100), IN `FKIdEmp` INT(100), IN `FKIdEmployeManagerApprouve` INT(100), IN `FKIdEmployeFinancierApprouve` INT(100), IN `appchef` TINYINT, IN `appfin` TINYINT)   BEGIN
+  
+    INSERT INTO notedefrais (DateNoteDeFrais, DateDemande, Montant, Motif, FKIdEmploye , FKIdEmployeManagerApprouve, FKIdEmployeFinancierApprouve, estApprouveChef, estApprouveDirFin)
+    VALUES (DateNoteDeFrais, DateDemande, Montant, Motif, FKIdEmp, FKIdEmployeManagerApprouve, FKIdEmployeFinancierApprouve, appchef, appfin);
 END$$
 
 DROP PROCEDURE IF EXISTS `usp_ajoutTypeConge`$$
@@ -73,7 +74,7 @@ DROP PROCEDURE IF EXISTS `usp_ajoutVille`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutVille` (IN `CP` INT, IN `Nom` VARCHAR(100))   insert into ville(CodePostal, Nomville) values (CP,Nom)$$
 
 DROP PROCEDURE IF EXISTS `usp_connectUser`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_connectUser` (IN `mail` VARCHAR(100), IN `pwd` VARCHAR(50))   select idemploye, nom, prenom, estChef, estRH, estDirecteurFinancier, nomTypeEmploye
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_connectUser` (IN `mail` VARCHAR(100), IN `pwd` VARCHAR(50))   select idemploye, nom, prenom, estChef, estRH, estDirecteurFinancier, nomTypeEmploye, FKIdEmployeManager 
 from employe emp
 left join typeemploye typemp on(emp.FKIdTypeEmploye = typemp.IdTypeEmploye)
 where adressemail=trim(mail)
@@ -344,6 +345,8 @@ CREATE TABLE IF NOT EXISTS `notedefrais` (
   `DateDemande` date NOT NULL,
   `Montant` float NOT NULL,
   `Motif` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estApprouveChef` int DEFAULT NULL,
+  `estApprouveDirFin` int DEFAULT NULL,
   `FKIdEmploye` int NOT NULL,
   `FKIdEmployeManagerApprouve` int DEFAULT NULL,
   `FKIdEmployeFinancierApprouve` int DEFAULT NULL,
@@ -351,19 +354,18 @@ CREATE TABLE IF NOT EXISTS `notedefrais` (
   KEY `RelationNoteFraisEmploye` (`FKIdEmploye`),
   KEY `RelationNoteFraisEmployeManager` (`FKIdEmployeManagerApprouve`),
   KEY `RelationNoteFraisEmployeFinancier` (`FKIdEmployeFinancierApprouve`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `notedefrais`
 --
 
-INSERT INTO `notedefrais` (`IdNoteDeFrais`, `DateNoteDeFrais`, `DateDemande`, `Montant`, `Motif`, `FKIdEmploye`, `FKIdEmployeManagerApprouve`, `FKIdEmployeFinancierApprouve`) VALUES
-(1, '2023-12-26', '2023-12-26', 100, 'cadeau de noel', 1, NULL, NULL),
-(2, '2023-12-28', '2023-12-28', 250, 'cadeaux', 1, NULL, NULL),
-(3, '2023-12-27', '2023-12-27', 12, 'pppp', 1, NULL, NULL),
-(4, '2023-12-14', '2023-12-14', 123, 'aaa', 1, NULL, NULL),
-(5, '2023-12-14', '2023-12-14', 123, 'aaa', 1, NULL, NULL),
-(6, '2023-12-07', '2023-12-07', 250, '123', 1, NULL, NULL);
+INSERT INTO `notedefrais` (`IdNoteDeFrais`, `DateNoteDeFrais`, `DateDemande`, `Montant`, `Motif`, `estApprouveChef`, `estApprouveDirFin`, `FKIdEmploye`, `FKIdEmployeManagerApprouve`, `FKIdEmployeFinancierApprouve`) VALUES
+(11, '2023-12-25', '2023-12-25', 1500, 'avion', 1, 1, 13, 2, 4),
+(12, '2023-12-31', '2023-12-31', 500, 'champagne', 0, NULL, 13, 2, NULL),
+(13, '2023-12-10', '2023-12-10', 123, 'test', 1, 0, 2, 1, 4),
+(14, '2023-12-08', '2023-12-08', 12345, 'aaa', 1, 1, 1, 1, 4),
+(15, '2023-12-14', '2023-12-14', 20, 'bonbons', NULL, NULL, 13, NULL, NULL);
 
 -- --------------------------------------------------------
 
