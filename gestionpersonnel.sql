@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 28 déc. 2023 à 13:44
+-- Généré le : dim. 14 jan. 2024 à 09:39
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -73,6 +73,14 @@ values(nom,chef,rh,fin)$$
 DROP PROCEDURE IF EXISTS `usp_ajoutVille`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutVille` (IN `CP` INT, IN `Nom` VARCHAR(100))   insert into ville(CodePostal, Nomville) values (CP,Nom)$$
 
+DROP PROCEDURE IF EXISTS `usp_CalculeFichePaie`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_CalculeFichePaie` (IN `inputDate` DATE, IN `IDEmp` INT)  READS SQL DATA select 	fn_RechercheSalaire(inputDate,IDEmp),
+		fn_RechercheDateDebutFichePaie(inputDate,IDEmp),
+		fn_RechercheDateFinFichePaie(inputDate,IDEmp),
+		fn_CalculeJoursSansSolde(inputDate,IDEmp),
+		fn_CalculeNotesFrais(inputDate,IDEmp),
+		fn_RechercheProrata(inputDate,IDEmp)$$
+
 DROP PROCEDURE IF EXISTS `usp_connectUser`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_connectUser` (IN `mail` VARCHAR(100), IN `pwd` VARCHAR(50))   select idemploye, nom, prenom, estChef, estRH, estDirecteurFinancier, nomTypeEmploye, FKIdEmployeManager 
 from employe emp
@@ -135,6 +143,138 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectManager` ()  READS SQL DA
 DROP PROCEDURE IF EXISTS `usp_selectTypeEmploye`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_selectTypeEmploye` ()  READS SQL DATA select idtypeemploye, nomtypeemploye from typeemploye$$
 
+--
+-- Fonctions
+--
+DROP FUNCTION IF EXISTS `fn_CalculeJoursSansSolde`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_CalculeJoursSansSolde` (`inputDate` DATE, `IDEmp` INT) RETURNS INT READS SQL DATA BEGIN
+       DECLARE nbjours INT DEFAULT 0;
+                -- Recherche du nombre de jorus sans solde sur le mois
+        select DATEDIFF(
+							CASE
+								WHEN DateFinConge > LAST_DAY(inputDate) THEN LAST_DAY(inputDate)
+								ELSE DateFinConge
+							END,
+							CASE
+								WHEN DateDebutConge < inputDate THEN inputDate
+								ELSE DateDebutConge
+							END
+						) + 1 AS duree into nbjours
+					
+					from conge con
+					left join typeconge typ on(con.FKIdTypeConge = typ.IDTypeConge)
+                    left join contrat cont on(con.FKIdEmploye = cont.FKIdEmploye)
+					where typ.estSansSolde = 1
+					and con.estApprouve = 1
+                    and con.FKIdEmploye = IDEmp
+                    and (
+                        	(con.DateDebutConge <= inputDate AND con.DateFinConge >= InputDate)
+                       	OR  (con.DateDebutConge > InputDate AND LAST_DAY(con.DateDEbutConge) = LAST_DAY(inputDate))
+                        ) 
+                    and (
+                        date_add(cont.datedebut,interval -DAY(cont.datedebut)+1 DAY) <= inputDate -- ici on prend le premier jour du mois de la date début de contrat
+    					AND 
+                        cont.datefin >= inputDate)
+                    
+					group by con.FkIDEmploye;
+           return nbjours ;
+
+END$$
+
+DROP FUNCTION IF EXISTS `fn_CalculeNotesFrais`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_CalculeNotesFrais` (`inputDate` DATE, `IDEmp` INT) RETURNS FLOAT(10,2) READS SQL DATA BEGIN
+       DECLARE sommenotefrais FLOAT(10,2) DEFAULT 0;
+                -- Recherche du nombre de jorus sans solde sur le mois
+        
+        select sum(note.montant) into sommenotefrais 
+        from notedefrais note
+        where note.estApprouveChef=1
+        AND note.estApprouveDirFin=1
+        AND note.FKIdEmploye = IDEmp
+        AND(note.DateNoteDeFrais between inputDate AND LAST_DAY(inputDate)) ;
+        return sommenotefrais ;
+
+END$$
+
+DROP FUNCTION IF EXISTS `fn_CountBusinessDays`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_CountBusinessDays` (`startDate` DATE, `endDate` DATE) RETURNS INT  BEGIN
+    DECLARE totalDays INT;
+    DECLARE currentDay DATE;
+    DECLARE businessDays INT DEFAULT 0;
+
+    SET totalDays = DATEDIFF(endDate, startDate);
+    SET currentDay = startDate;
+
+    WHILE currentDay <= endDate DO
+        IF WEEKDAY(currentDay) BETWEEN 0 AND 4 THEN
+            SET businessDays = businessDays + 1;
+        END IF;
+        SET currentDay = DATE_ADD(currentDay, INTERVAL 1 DAY);
+    END WHILE;
+
+    RETURN businessDays;
+END$$
+
+DROP FUNCTION IF EXISTS `fn_RechercheDateDebutFichePaie`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_RechercheDateDebutFichePaie` (`inputDate` DATE, `IDEmp` INT) RETURNS DATE READS SQL DATA BEGIN
+       DECLARE datedebutfiche DATE ;
+                -- Recherche du nombre de jorus sans solde sur le mois
+        
+               
+        select CASE
+        WHEN inputDate >= cont.DateDebut THEN inputDate
+        ELSE cont.DateDebut
+        END AS dateretour into datedebutfiche
+        from contrat cont
+        where LAST_DAY(cont.DateDebut) <= LAST_DAY(inputDate)
+        AND cont.DateFin >= inputDate
+        and cont.FKIdEmploye = IDEmp;
+        return datedebutfiche ;
+
+END$$
+
+DROP FUNCTION IF EXISTS `fn_RechercheDateFinFichePaie`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_RechercheDateFinFichePaie` (`inputDate` DATE, `IDEmp` INT) RETURNS DATE READS SQL DATA BEGIN
+       DECLARE datefinfiche DATE ;
+                -- Recherche du nombre de jorus sans solde sur le mois
+        
+               
+        select CASE
+        WHEN LAST_DAY(inputDate) <= cont.DateFin THEN LAST_DAY(inputDate)
+        ELSE cont.DateFin
+        END AS dateretour into datefinfiche
+        from contrat cont
+        where LAST_DAY(cont.DateDebut) <= LAST_DAY(inputDate)
+        AND cont.DateFin >= inputDate
+        and cont.FKIdEmploye = IDEmp;
+        return datefinfiche ;
+
+END$$
+
+DROP FUNCTION IF EXISTS `fn_RechercheProrata`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_RechercheProrata` (`inputDate` DATE, `IDEmp` INT) RETURNS FLOAT(10,2) READS SQL DATA BEGIN
+       DECLARE prorata FLOAT(10,2) DEFAULT 1 ;
+               
+       SELECT 
+			fn_CountBusinessDays(fn_RechercheDateDebutFichePaie(inputDate,IDEmp), fn_RechercheDateFinFichePaie(inputDate,IDEmp)) /
+			fn_CountBusinessDays(inputDate, LAST_DAY(inputDate)) into prorata;
+        return prorata ;
+
+END$$
+
+DROP FUNCTION IF EXISTS `fn_RechercheSalaire`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_RechercheSalaire` (`inputDate` DATE, `IDEmp` INT) RETURNS FLOAT(10,2) READS SQL DATA BEGIN
+       DECLARE salaireretour FLOAT(10,2) DEFAULT 0;
+                -- Recherche du nombre de jorus sans solde sur le mois
+        
+        select cont.Salaire into salaireretour 
+        from contrat cont
+        where cont.FKIdEmploye = IDEmp
+        AND(LAST_DAY(cont.DateDebut) <= LAST_DAY(inputDate) AND cont.DateFin >= InputDate) ;
+        return salaireretour ;
+
+END$$
+
 DELIMITER ;
 
 -- --------------------------------------------------------
@@ -190,7 +330,7 @@ CREATE TABLE IF NOT EXISTS `conge` (
   KEY `RelationCongeType` (`FKIdTypeConge`),
   KEY `RelationCongeEmploye` (`FKIdEmploye`),
   KEY `RelationCongeEmployeApprouve` (`FkIDEmployeApprouve`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `conge`
@@ -198,7 +338,8 @@ CREATE TABLE IF NOT EXISTS `conge` (
 
 INSERT INTO `conge` (`IdConge`, `DateDebutConge`, `DateFinConge`, `estApprouve`, `FKIdEmploye`, `FKIdTypeConge`, `FkIDEmployeApprouve`) VALUES
 (1, '2023-01-01', '2023-12-31', 1, 2, 1, 1),
-(3, '2023-12-26', '2023-12-27', 0, 4, 1, NULL);
+(3, '2023-12-26', '2023-12-27', 0, 4, 1, NULL),
+(4, '2022-12-31', '2023-01-01', 1, 1, 6, NULL);
 
 -- --------------------------------------------------------
 
@@ -222,7 +363,7 @@ CREATE TABLE IF NOT EXISTS `contrat` (
 --
 
 INSERT INTO `contrat` (`IdContrat`, `DateDebut`, `DateFin`, `Salaire`, `FKIdEmploye`) VALUES
-(1, '2022-01-01', '2099-12-31', 5000.25, 1),
+(1, '2022-01-15', '2023-12-15', 5000.25, 1),
 (2, '2023-01-01', '2023-12-31', 5236.54, 6);
 
 -- --------------------------------------------------------
@@ -354,7 +495,7 @@ CREATE TABLE IF NOT EXISTS `notedefrais` (
   KEY `RelationNoteFraisEmploye` (`FKIdEmploye`),
   KEY `RelationNoteFraisEmployeManager` (`FKIdEmployeManagerApprouve`),
   KEY `RelationNoteFraisEmployeFinancier` (`FKIdEmployeFinancierApprouve`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `notedefrais`
@@ -364,8 +505,9 @@ INSERT INTO `notedefrais` (`IdNoteDeFrais`, `DateNoteDeFrais`, `DateDemande`, `M
 (11, '2023-12-25', '2023-12-25', 1500, 'avion', 1, 1, 13, 2, 4),
 (12, '2023-12-31', '2023-12-31', 500, 'champagne', 0, NULL, 13, 2, NULL),
 (13, '2023-12-10', '2023-12-10', 123, 'test', 1, 0, 2, 1, 4),
-(14, '2023-12-08', '2023-12-08', 12345, 'aaa', 1, 1, 1, 1, 4),
-(15, '2023-12-14', '2023-12-14', 20, 'bonbons', NULL, NULL, 13, NULL, NULL);
+(14, '2023-01-10', '2023-12-08', 12345, 'aaa', 1, 1, 1, 1, 4),
+(15, '2023-12-14', '2023-12-14', 20, 'bonbons', NULL, NULL, 13, NULL, NULL),
+(16, '2023-01-01', '2023-01-01', 10.52, 'aaa', 1, 1, 1, 1, 4);
 
 -- --------------------------------------------------------
 
