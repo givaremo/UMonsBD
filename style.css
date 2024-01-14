@@ -1,0 +1,161 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+/* Créez une classe pour votre logo */
+.logo {
+    width: 150px; /* Ajustez la largeur du logo */
+    height: 150px; /* Ajustez la hauteur du logo */
+    background-image: url('./img/logouniv.jpg'); /* Remplacez par le chemin vers votre image de logo */
+    background-size: cover; /* Ajustez la taille de l'image */
+    position: fixed; /* Fixe le logo à la position souhaitée */
+    top: 0; /* Aligne le logo en haut */
+    left: 0; /* Aligne le logo à droite */
+    margin: 10px; /* Ajoute une marge pour l'espacement */
+    z-index: 1; /* Définit la priorité d'affichage (au-dessus du contenu) */
+}
+
+.login-container {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+    margin: auto;
+    border: 2px solid #2ecc71; /* Bordure verte */
+}
+
+.login-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.submit-btn {
+    background-color: #2ecc71;
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    background-color: #27ae60;
+}
+
+.menu-container {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 50%;
+    text-align: center;
+    margin: auto;
+    border: 2px solid #2ecc71; /* Bordure verte */
+}
+
+.submenu-container {
+    align:center;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    text-align: center;
+    margin: auto;
+    border: 2px solid #2ecc71; /* Bordure verte */
+}
+
+.logout-link {
+    color: #007bff; /* Couleur du lien */
+    text-decoration: none; /* Supprime le soulignement par défaut du lien */
+    cursor: pointer; /* Affiche le curseur en forme de main au survol */
+}
+
+.top-right {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 10px;
+    text-align:right;
+}
+
+
+
+
+input[type="date"] {
+  width: 50%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  font-size: 16px;
+  color: #333;
+}
+
+input[type="date"]:focus {
+  outline: none;
+  border-color: #2ecc71;
+}
+
+.table-container {
+    margin-top: 20px;
+    margin-bottom: 20px; /* Ajoutez cette ligne pour centrer la table verticalement */
+    text-align: center; /* Ajoutez cette ligne pour centrer le texte à l'intérieur du conteneur */
+}
+
+table {
+    border-collapse: separate;
+    width: 100%;
+    align:center;
+    border: 0px ;
+}
+
+th, td {
+    border: 0px ;
+    text-align: left;
+    padding: 8px;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #e5e5e5;
+}
+
+h4 {
+    color: #27ae60; /* Vert */
+}
