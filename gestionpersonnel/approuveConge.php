@@ -20,10 +20,7 @@ echo '
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>';
-
-
-
-
+echo '<div class="logo"></div>' ;
 echo  '<div class="menu-container">';
 // Ajout de la flèche de retour vers la page menu.php
 echo '<div class="top-left" align="left">
@@ -37,55 +34,76 @@ echo '<br></div>' ;
 echo '<div class="submenu-container">';
 echo '<h2>Approbation Congé</h2>';
 
-if ($estChef==1)
+if ($estChef == 1)
 {
-  echo '<h4>Afficher les demandes de congé</h4>';
-  echo "<br> voila les employés qui ont fait une demande :<br><br>";
+  echo '<h4>Voici les demandes de congé</h4>';
+  echo "<br><br>";
 
-  $sql = "SELECT * from conge,employe WHERE conge.FKIdEmplye = employe.IdEmploye";
-  $result = $base->query($sql);
+  $query = 'SELECT c.*, e.Nom as NomEmploye, e.Prenom as PrenomEmploye, manager.Nom as NomManager, manager.Prenom as PrenomManager
+          FROM conge c
+          JOIN employe e ON c.FKIdEmploye = e.IdEmploye
+          LEFT JOIN employe manager ON e.FKIdEmployeManager = manager.IdEmploye
+          WHERE e.FKIdEmployeManager = ?
+          AND c.FkIDEmployeApprouve IS NULL
+          AND manager.IdEmploye IS NOT NULL';
+  $result = $base->prepare($query);
+  $result->bindParam(1, $idemploye, PDO::PARAM_INT);
+  $result->execute();
 
   while($ligne = $result->fetch(PDO::FETCH_ASSOC))
   {
-    $IdEmploye=$ligne['IdEmploye'];
-    $IdConge=$ligne['IdConge'];
-    $nom=$ligne['Nom'];
-    $prenom=$ligne['Prenom'];
-    $dateDebut=$ligne['DateDebutConge'];
-    $dateFin=$ligne['DateFinConge'];
-    echo "$IdEmploye- $IdConge - Nom : $nom, Prénom : $prenom, Debut: $dateDebut, Fin: $dateFin";
-
-    echo '<form method="post" action="">';
-            echo '<input type="submit" name="approuver" value="Approuver">';
-            echo '<input type="submit" name="refuser" value="Refuser">';
-            echo '</form>';
-
-            if ($_SERVER["REQUEST_METHOD"] == "POST") 
-            {
-              // Vérifiez le bouton soumis
-              if (isset($_POST["approuver"])) 
-              {
-                  $sql = 'UPDATE conge SET estApprouve = 1 WHERE IdEmploye = :IdEmploye';
-                  $stmt = $base->prepare($sql);
-                  $stmt->bindParam(':IdEmploye', $idEmploye, PDO::PARAM_INT);
-                  $stmt->execute();
-              } 
-              elseif (isset($_POST["refuser"])) 
-              {
-                  $sql = 'UPDATE conge SET estApprouve = -1 WHERE IdEmploye = :IdEmploye';
-                  $stmt = $base->prepare($sql);
-                  $stmt->bindParam(':IdEmploye', $idEmploye, PDO::PARAM_INT);
-                  $stmt->execute();
-              } 
-              else 
-              {
-                  $sql = 'UPDATE conge SET estApprouve = 0 WHERE IdEmploye = :IdEmploye';
-                  $stmt = $base->prepare($sql);
-                  $stmt->bindParam(':IdEmploye', $idEmploye, PDO::PARAM_INT);
-                  $stmt->execute();
-              }
-          }
+    echo '<form method="post" action="approuveConge.php">';
+    $IdEmpl = $ligne['FKIdEmploye'];
+    $IdConge = $ligne['IdConge'];
+    $nom = $ligne['NomEmploye'];
+    $prenom = $ligne['PrenomEmploye'];
+    $dateDebut = $ligne['DateDebutConge'];
+    $dateFin = $ligne['DateFinConge'];
+    
+    echo "iD employé : $IdEmpl - iD Congé : $IdConge <br> 
+    Nom : $nom <br> Prénom : $prenom <br> 
+    Debut: $dateDebut <br> Fin: $dateFin <br>";
+    
+    if ($ligne['estApprouve'] == 0) 
+    {
+      echo '<input type="submit" name="approuver" value="Approuver">';
+      echo '<input type="submit" name="refuser" value="Refuser">';
+    } 
+    elseif ($ligne['estApprouve'] == 1) 
+    {
+      echo '<span style="color: green;">Demande approuvée</span>';
+    } 
+    elseif ($ligne['estApprouve'] == -1) 
+    {
+      echo '<span style="color: red;">Demande refusée</span>';
+    }
+    echo '</form>';
   }
+
+  if ($_SERVER["REQUEST_METHOD"] == "POST") 
+  {
+    // On vérifie le bouton soumis
+    if (isset($_POST["approuver"])) 
+    {
+      $sql = 'UPDATE conge SET FkIDEmployeApprouve = ?, estApprouve = 1 WHERE IdConge = ?';
+      $stmt = $base->prepare($sql);
+      $stmt->bindParam(1, $idemploye, PDO::PARAM_INT);
+      $stmt->bindParam(2, $IdConge, PDO::PARAM_INT);
+      $stmt->execute();
+    } 
+    elseif (isset($_POST["refuser"])) 
+    {
+      $sql = 'UPDATE conge SET FkIDEmployeApprouve = ?, estApprouve = -1 WHERE IdConge = ?';
+      $stmt = $base->prepare($sql);
+      $stmt->bindParam(1, $idemploye, PDO::PARAM_INT);
+      $stmt->bindParam(2, $IdConge, PDO::PARAM_INT);
+      $stmt->execute();
+    } 
+  }
+}
+else
+{
+  echo "Vous n'êtes pas habilité ! <br>";
 }
 
 echo '</div>' ;

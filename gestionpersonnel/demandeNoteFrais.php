@@ -86,7 +86,7 @@ echo '<!DOCTYPE html>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>';
-
+echo '<div class="logo"></div>' ;
 echo '<div class="menu-container">';
 echo '<div class="top-left" align="left">
         <a href="menu.php" class="back-link">↩ Retour au menu</a>

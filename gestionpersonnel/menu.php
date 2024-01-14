@@ -22,7 +22,7 @@ echo '
 
 
 
-
+echo '<div class="logo"></div>' ;
 echo  '<div class="menu-container">';
 
 echo '<div class="top-right" align="right">';

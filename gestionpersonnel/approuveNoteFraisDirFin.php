@@ -81,7 +81,7 @@ $result = $stmt->get_result();
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-
+	<div class="logo"></div>;
     <div class="menu-container">
 		<div class="top-left" align="left">
         <a href="menu.php" class="back-link">↩ Retour au menu</a>

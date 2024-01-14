@@ -21,7 +21,7 @@ echo '
 <body>';
 
 
-
+echo '<div class="logo"></div>' ;
 
 echo  '<div class="menu-container">';
 // Ajout de la flèche de retour vers la page menu.php

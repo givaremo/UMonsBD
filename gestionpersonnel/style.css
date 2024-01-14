@@ -9,6 +9,19 @@ body {
     height: 100vh;
 }
 
+/* Créez une classe pour votre logo */
+.logo {
+    width: 150px; /* Ajustez la largeur du logo */
+    height: 150px; /* Ajustez la hauteur du logo */
+    background-image: url('./img/logouniv.jpg'); /* Remplacez par le chemin vers votre image de logo */
+    background-size: cover; /* Ajustez la taille de l'image */
+    position: fixed; /* Fixe le logo à la position souhaitée */
+    top: 0; /* Aligne le logo en haut */
+    left: 0; /* Aligne le logo à droite */
+    margin: 10px; /* Ajoute une marge pour l'espacement */
+    z-index: 1; /* Définit la priorité d'affichage (au-dessus du contenu) */
+}
+
 .login-container {
     background-color: #f9f9f9;
     border-radius: 8px;
@@ -91,9 +104,10 @@ body {
     top: 0;
     right: 0;
     padding: 10px;
-    background-color: #f1f1f1;
     text-align:right;
 }
+
+
 
 
 input[type="date"] {
