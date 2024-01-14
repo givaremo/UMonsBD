@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : dim. 14 jan. 2024 à 09:39
+-- Généré le : dim. 14 jan. 2024 à 13:28
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -29,8 +29,8 @@ DROP PROCEDURE IF EXISTS `usp_affichecalendrier`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_affichecalendrier` (IN `idemp` INT, IN `datecal` DATE)  READS SQL DATA select mng.Nom, mng.Prenom, typ.NomTypeEmploye, 
 CASE 
 when (cong.DateDebutConge <= datecal and cong.DateFinConge >= datecal and cong.estApprouve=1) then 'A'
-when (cong.DateDebutConge <= datecal and cong.DateFinConge >= datecal and cong.estApprouve=0 and cong.FkIDEmployeApprouve is NULL) then 'O'
-when (cong.DateDebutConge <= datecal and cong.DateFinConge >= datecal and cong.estApprouve=0 and cong.FkIDEmployeApprouve is not NULL) then 'R'
+when (cong.DateDebutConge <= datecal and cong.DateFinConge >= datecal and cong.estApprouve=0) then 'O'
+when (cong.DateDebutConge <= datecal and cong.DateFinConge >= datecal and cong.estApprouve=-1) then 'R'
 else 'P'
 END as presence,
 cong.FkIDEmployeApprouve
@@ -74,12 +74,15 @@ DROP PROCEDURE IF EXISTS `usp_ajoutVille`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_ajoutVille` (IN `CP` INT, IN `Nom` VARCHAR(100))   insert into ville(CodePostal, Nomville) values (CP,Nom)$$
 
 DROP PROCEDURE IF EXISTS `usp_CalculeFichePaie`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_CalculeFichePaie` (IN `inputDate` DATE, IN `IDEmp` INT)  READS SQL DATA select 	fn_RechercheSalaire(inputDate,IDEmp),
-		fn_RechercheDateDebutFichePaie(inputDate,IDEmp),
-		fn_RechercheDateFinFichePaie(inputDate,IDEmp),
-		fn_CalculeJoursSansSolde(inputDate,IDEmp),
-		fn_CalculeNotesFrais(inputDate,IDEmp),
-		fn_RechercheProrata(inputDate,IDEmp)$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_CalculeFichePaie` (IN `inputDate` DATE, IN `IDEmp` INT)  READS SQL DATA select 	fn_RechercheSalaire(inputDate,IDEmp) as salaire,
+		fn_RechercheDateDebutFichePaie(inputDate,IDEmp) as datedebut,
+		fn_RechercheDateFinFichePaie(inputDate,IDEmp) as datefin,
+		fn_CalculeJoursSansSolde(inputDate,IDEmp) as jourssanssolde,
+		fn_CalculeNotesFrais(inputDate,IDEmp) as notefrais,
+		fn_RechercheProrata(inputDate,IDEmp) as prorata, 
+        Nom, Prenom, IBAN
+        from employe
+        where IDEmploye=IDEmp$$
 
 DROP PROCEDURE IF EXISTS `usp_connectUser`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `usp_connectUser` (IN `mail` VARCHAR(100), IN `pwd` VARCHAR(50))   select idemploye, nom, prenom, estChef, estRH, estDirecteurFinancier, nomTypeEmploye, FKIdEmployeManager 
@@ -256,7 +259,16 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `fn_RechercheProrata` (`inputDate` DA
        DECLARE prorata FLOAT(10,2) DEFAULT 1 ;
                
        SELECT 
-			fn_CountBusinessDays(fn_RechercheDateDebutFichePaie(inputDate,IDEmp), fn_RechercheDateFinFichePaie(inputDate,IDEmp)) /
+			(
+            	( 
+                	fn_CountBusinessDays(
+                   	 fn_RechercheDateDebutFichePaie(inputDate,IDEmp)
+                   	 , 
+                  	  fn_RechercheDateFinFichePaie(inputDate,IDEmp)
+                	) 
+            	) - fn_CalculeJoursSansSolde(inputDate,IDEmp) 
+            )
+            /
 			fn_CountBusinessDays(inputDate, LAST_DAY(inputDate)) into prorata;
         return prorata ;
 
@@ -337,9 +349,9 @@ CREATE TABLE IF NOT EXISTS `conge` (
 --
 
 INSERT INTO `conge` (`IdConge`, `DateDebutConge`, `DateFinConge`, `estApprouve`, `FKIdEmploye`, `FKIdTypeConge`, `FkIDEmployeApprouve`) VALUES
-(1, '2023-01-01', '2023-12-31', 1, 2, 1, 1),
-(3, '2023-12-26', '2023-12-27', 0, 4, 1, NULL),
-(4, '2022-12-31', '2023-01-01', 1, 1, 6, NULL);
+(1, '2023-01-01', '2023-01-15', 0, 2, 1, 1),
+(3, '2023-12-26', '2023-12-27', 1, 4, 1, 1),
+(4, '2023-12-05', '2023-12-06', 1, 1, 6, NULL);
 
 -- --------------------------------------------------------
 
@@ -505,9 +517,9 @@ INSERT INTO `notedefrais` (`IdNoteDeFrais`, `DateNoteDeFrais`, `DateDemande`, `M
 (11, '2023-12-25', '2023-12-25', 1500, 'avion', 1, 1, 13, 2, 4),
 (12, '2023-12-31', '2023-12-31', 500, 'champagne', 0, NULL, 13, 2, NULL),
 (13, '2023-12-10', '2023-12-10', 123, 'test', 1, 0, 2, 1, 4),
-(14, '2023-01-10', '2023-12-08', 12345, 'aaa', 1, 1, 1, 1, 4),
+(14, '2023-01-10', '2023-12-08', 100, 'aaa', 1, 1, 1, 1, 4),
 (15, '2023-12-14', '2023-12-14', 20, 'bonbons', NULL, NULL, 13, NULL, NULL),
-(16, '2023-01-01', '2023-01-01', 10.52, 'aaa', 1, 1, 1, 1, 4);
+(16, '2023-01-01', '2023-01-01', 10.5, 'aaa', 1, 1, 1, 1, 4);
 
 -- --------------------------------------------------------
 
